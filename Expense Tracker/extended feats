@@ -1,0 +1,90 @@
+import json
+
+# Load expenses data from a file if it exists
+try:
+    with open("expenses.json", "r") as file:
+        expenses = json.load(file)
+except FileNotFoundError:
+    expenses = {}
+
+def add_expense(amount, category):
+    expenses.setdefault(category, []).append(amount)
+    print("Expense added successfully!")
+    save_expenses()
+
+def save_expenses():
+    with open("expenses.json", "w") as file:
+        json.dump(expenses, file)
+
+def display_expenses():
+    print("Expenses:")
+    for category, amounts in expenses.items():
+        total_amount = sum(amounts)
+        print(f"{category}: ${total_amount}")
+
+def calculate_total_expenses():
+    total = sum(sum(amounts) for amounts in expenses.values())
+    print(f"Total expenses: ${total}")
+
+def add_budget():
+    # Check if necessary categories are set up
+    required_categories = ["Salary", "Invoice"]
+    if not all(category in expenses for category in required_categories):
+        print("Please set up your salary/invoice first.")
+        return
+    
+    salary = expenses["Salary"][0]
+    invoice = expenses["Invoice"][0]
+    device = expenses.get("Device", ["$"])[0]
+    budget_total = salary - invoice
+    
+    # Distribute budget into three parts
+    budget_names = ["First", "Second", "Third"]
+    for i, budget_name in enumerate(budget_names, start=1):
+        budget = budget_total / 3
+        budget_name_input = input(f"What do you want to allocate for the {budget_name} part of your budget ({budget}{device}): ")
+        expenses[f"Budget {budget_name_input}"] = [budget]
+        print(f"Budget {budget_name_input} = {budget}")
+    save_expenses()
+
+def setup():
+    device = input("Enter the device ($/£/€): ")
+    salary = float(input("Enter your salary: "))
+    invoice = float(input("Enter your invoice: "))
+    expenses.update({"Device": [device], "Salary": [salary], "Invoice": [invoice]})
+    print(f"Your device is set to {device}")
+    print(f"Your salary is set to ${salary}")
+    print(f"Your invoice is set to ${invoice}")
+    save_expenses()
+
+def main():
+    while True:
+        print("\n0. Setup")
+        print("1. Add Expense")
+        print("2. Display Expenses")
+        print("3. Calculate Total Expenses")
+        print("4. Add Budget")
+        print("5. Quit")
+        
+        choice = input("Enter your choice: ")
+        
+        if choice == "1":
+            amount = float(input("Enter the amount: "))
+            category = input("Enter the category: ")
+            add_expense(amount, category)
+        elif choice == "2":
+            display_expenses()
+        elif choice == "0":
+            setup()
+        elif choice == "3":
+            calculate_total_expenses()
+        elif choice == "4":
+            add_budget()
+        elif choice == "5":
+            print("Exiting...")
+            break
+        else:
+            print("Invalid choice!")
+
+if __name__ == "__main__":
+    main()
